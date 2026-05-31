@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMK પાર્ટી વાઈઝ હિસાબ કિતાબ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 10px; 
+            color: #333;
+        }
+        
+        /* આખા પેજનું મુખ્ય માળખું: ડાબી એડ + મેઈન કન્ટેન્ટ + જમણી એડ */
+        .main-layout {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 15px;
+            flex-direction: column;
+        }
+        
+        .container {
+            flex: 1;
+            background: #fff;
+            padding: 15px; 
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            order: 1; /* મોબાઈલમાં કન્ટેન્ટ પહેલા દેખાશે */
+        }
+        
+        /* 160x600 સાઇડબાર કન્ટેનર */
+        .sidebar-ad-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            order: 2; /* મોબાઈલમાં એડ્સ નીચે જશે */
+        }
+        
+        .ad-160-600 {
+            width: 160px;
+            min-height: 600px;
+            background: #fff;
+            border: 1px dashed #bbb;
+            padding: 5px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        /* મોટા સ્ક્રીન (PC/Laptop) માટે 3-કોલમ લેઆઉટ સેટિંગ્સ */
+        @media(min-width: 1024px) {
+            .main-layout {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .container {
+                order: 2; /* મોટી સ્ક્રીનમાં કન્ટેન્ટ વચ્ચે રહેશે */
+            }
+            .sidebar-ad-container {
+                width: 170px;
+                position: sticky;
+                top: 20px;
+            }
+            .left-ad {
+                order: 1; /* ડાબી બાજુની એડ */
+            }
+            .right-ad {
+                order: 3; /* જમણી બાજુની એડ */
+            }
+        }
+
+        h2, h3 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 1.4rem; 
+        }
+        .flex-grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .box {
+            flex: 1;
+            min-width: 100%; 
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+        @media(min-width: 768px) {
+            .box {
+                min-width: 280px; 
+            }
+            body { padding: 20px; }
+            .container { padding: 25px; }
+            h2, h3 { font-size: 1.7rem; }
+        }
+        .form-content {
+            width: 100%;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #219653;
+        }
+        .btn-add-party {
+            background-color: #2980b9;
+        }
+        .btn-add-party:hover {
+            background-color: #1f6391;
+        }
+        .btn-delete-party {
+            background-color: #c0392b;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .btn-delete-party:hover {
+            background-color: #962d22;
+        }
+        .summary-box {
+            display: flex;
+            flex-direction: column; 
+            gap: 10px;
+            background: #eef2f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        @media(min-width: 600px) {
+            .summary-box {
+                flex-direction: row; 
+                justify-content: space-between;
+                font-size: 16px;
+            }
+        }
+        .all-parties-box {
+            background: #e8f4fd;
+            border: 2px dashed #2980b9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .text-credit { color: #27ae60; font-weight: bold; }
+        .text-debit { color: #c0392b; font-weight: bold; }
+        
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px; 
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        
+        .all-parties-table th {
+            background-color: #2980b9;
+        }
+        .all-parties-table .total-row {
+            background-color: #d4edda !important;
+            font-weight: bold;
+        }
+        
+        .btn-delete {
+            background-color: #e74c3c;
+            padding: 6px 12px;
+            font-size: 13px;
+            width: auto;
+            display: inline-block;
+        }
+        .btn-delete:hover { background-color: #c0392b; }
+        
+        .title-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            flex-direction: column; 
+            margin-top: 20px;
+            gap: 10px;
+        }
+        @media(min-width: 600px) {
+            .title-area {
+                flex-direction: row; 
+            }
+        }
+        
+        .adsterra-ad-box {
+            margin-top: 20px;
+            padding: 5px;
+            background: #fff;
+            border: 1px dashed #bbb;
+            text-align: center;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            max-width: 100%;
+            overflow: hidden; 
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px 10px 5px 10px;
+            font-size: 14px;
+            color: #7f8c8d;
+            border-top: 1px solid #eee;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-layout">
+
+    <!-- 📢 ૧. ડાબી બાજુનો સાઇડબાર (160x600 એડ) -->
+    <div class="sidebar-ad-container left-ad">
+        <div class="ad-160-600">
+            <span style="font-size: 10px; color: #bbb; display: block; margin-bottom: 5px;">Sponsored</span>
+            
+            <!-- ⚠️ અહીં તમારી ૧લી 160x600 ની Adsterra Key નાખો -->
+            <script>
+                atOptions = {
+                  'key' : '102365cc44750e44da2585dd849d0544',
+                  'format' : 'iframe',
+                  'height' : 600,
+                  'width' : 160,
+                  'params' : {}
+                };
+              </script>
+              <script src="https://www.highperformanceformat.com/102365cc44750e44da2585dd849d0544/invoke.js"></script>
+              
+        </div>
+    </div>
+
+    <!-- વચ્ચેનું મુખ્ય કન્ટેન્ટ બોક્સ -->
+    <div class="container">
+        <h2>HMK પાર્ટી વાઈઝ હિસાબ મેનેજર</h2>
+        <hr>
+
+        <!-- ઓલ ઓવર સમરી સેક્શન -->
+        <div class="all-parties-box">
+            <h3 style="margin-top: 0; color: #2980b9;">📈 ઓલ ઓવર સમરી (બધી પાર્ટીઓનું લિસ્ટ અને કુલ જમા/બાકી)</h3>
+            <div class="table-responsive">
+                <table class="all-parties-table">
+                    <thead>
+                        <tr>
+                            <th>પાર્ટીનું નામ</th>
+                            <th>કુલ જમા (Credit)</th>
+                            <th>કુલ બાકી (Debit)</th>
+                            <th>જમા / બાકી નીકળતી રકમ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allPartiesTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="flex-grid">
+            <!-- ૧. નવી પાર્ટી ઉમેરવાનું બોક્સ -->
+            <div class="box">
+                <div class="form-content">
+                    <h3> નવી પાર્ટી ઉમેરો</h3>
+                    <label>પાર્ટીનું નામ:</label>
+                    <input type="text" id="partyNameInput" placeholder="દા.ત. રમેશભાઈ">
+                    <button class="btn-add-party" onclick="addParty()">પાર્ટી સેવ કરો</button>
+                </div>
+                
+                <!-- એડ જગ્યા: નવી પાર્ટી બોક્સની નીચે -->
+                <div class="adsterra-ad-box">
+                    <span style="font-size: 10px; color: #bbb; display: block;">Sponsored</span>
+                    <script>
+                        atOptions = {
+                          'key' : '609066a70672330f26d8a80bcdd62e3f',
+                          'format' : 'iframe',
+                          'height' : 250,
+                          'width' : 300,
+                          'params' : {}
+                        };
+                    </script>
+                    <script src="https://www.highperformanceformat.com/609066a70672330f26d8a80bcdd62e3f/invoke.js"></script>
+                </div>
+            </div>
+
+            <!-- ૨. ટ્રાન્ઝેક્શન ઉમેરવાનું બોક્સ -->
+            <div class="box">
+                <div class="form-content">
+                    <h3>નવો હિસાબ ઉમેરો</h3>
+                    <label>પાર્ટી પસંદ કરો:</label>
+                    <select id="partySelect" onchange="loadPartyData()">
+                        <option value="">-- પાર્ટી સિલેક્ટ કરો --</option>
+                    </select>
+
+                    <label>તારીખ:</label>
+                    <input type="date" id="txDate">
+
+                    <label>વિગત / નોંધ:</label>
+                    <input type="text" id="txDesc" placeholder="તમારી ડિટેલ્સ લખો">
+
+                    <label>પ્રકાર:</label>
+                    <select id="txType">
+                        <option value="credit">જમા (તમારી પાસે આવ્યા / Credit)</option>
+                        <option value="debit">બાકી (તમારે લેવાના / Debit)</option>
+                    </select>
+
+                    <label>રકમ (₹):</label>
+                    <input type="number" id="txAmount" placeholder="0.00">
+
+                    <button onclick="addTransaction()">એન્ટ્રી સેવ કરો</button>
+                </div>
+                
+                <!-- એડ જગ્યા: નવો હિસાબ બોક્સની નીચે -->
+                <div class="adsterra-ad-box">
+                    <span style="font-size: 10px; color: #bbb; display: block;">Sponsored</span>
+                    <script>
+                        atOptions = {
+                          'key' : '25f134a950ba48e651a83d67e685bcd9',
+                          'format' : 'iframe',
+                          'height' : 50,
+                          'width' : 320,
+                          'params' : {}
+                        };
+                    </script>
+                    <script src="https://www.highperformanceformat.com/25f134a950ba48e651a83d67e685bcd9/invoke.js"></script>
+                </div>
+            </div>
+        </div>
+
+        <!-- હિસાબ ડિસ્પ્લે એરિયા -->
+        <div id="ledgerSection" style="display: none;">
+            <hr>
+            <div class="title-area">
+                <h3 id="currentPartyTitle" style="margin: 10px 0;">પાર્ટી હિસાબ</h3>
+                <button class="btn-delete-party" style="width: auto;" onclick="deleteCurrentParty()"> આ આખી પાર્ટી ડીલીટ કરો</button>
+            </div>
+            
+            <div class="summary-box">
+                <div>આ પાર્ટીના કુલ જમા: <span id="totalCredit" class="text-credit">₹0</span></div>
+                <div>આ પાર્ટીના કુલ બાકી: <span id="totalDebit" class="text-debit">₹0</span></div>
+                <div>બાકી નીકળતી રકમ: <span id="netBalance">₹0</span></div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>તારીખ</th>
+                            <th>વિગત</th>
+                            <th>જમા (₹)</th>
+                            <th>બાકી (₹)</th>
+                            <th>એક્શન</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- એડ જગ્યા: તળિયે (Footer Ad) -->
+        <div class="adsterra-ad-box">
+            <span style="font-size: 10px; color: #bbb; display: block;">Sponsored</span>
+            <script>
+                atOptions = {
+                  'key' : '4a6e385696d7412c11a07024ff6bf8ae',
+                  'format' : 'iframe',
+                  'height' : 90,
+                  'width' : 728,
+                  'params' : {}
+                };
+            </script>
+            <script src="https://www.highperformanceformat.com/4a6e385696d7412c11a07024ff6bf8ae/invoke.js"></script>
+        </div>
+
+        <div class="footer-text">Made with ❤️ by <span>Hasmukh Kukadiya</span></div>
+    </div>
+
+    <!-- 📢 ૨. જમણી બાજુનો સાઇડબાર (160x600 એડ) -->
+    <div class="sidebar-ad-container right-ad">
+        <div class="ad-160-600">
+            <span style="font-size: 10px; color: #bbb; display: block; margin-bottom: 5px;">Sponsored</span>
+            
+            <!-- ⚠️ અહીં તમારી ૨જી 160x600 ની Adsterra Key નાખો -->
+            <script>
+                atOptions = {
+                  'key' : '102365cc44750e44da2585dd849d0544',
+                  'format' : 'iframe',
+                  'height' : 600,
+                  'width' : 160,
+                  'params' : {}
+                };
+              </script>
+              <script src="https://www.highperformanceformat.com/102365cc44750e44da2585dd849d0544/invoke.js"></script>
+              
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let accountData = JSON.parse(localStorage.getItem('partyAccountData')) || {};
+
+    window.onload = function() {
+        updatePartyDropdown();
+        renderAllPartiesSummary();
+        document.getElementById('txDate').valueAsDate = new Date();
+    };
+
+    function renderAllPartiesSummary() {
+        let tbody = document.getElementById('allPartiesTableBody');
+        tbody.innerHTML = '';
+        let grandCredit = 0; let grandDebit = 0;
+        let parties = Object.keys(accountData);
+
+        if(parties.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#7f8c8d;">હજુ સુધી કોઈ પાર્ટી ઉમેરેલ નથી.</td></tr>`;
+            return;
+        }
+
+        parties.forEach(party => {
+            let txList = accountData[party] || [];
+            let pCredit = 0; let pDebit = 0;
+            txList.forEach(tx => {
+                if(tx.type === 'credit') pCredit += tx.amount;
+                if(tx.type === 'debit') pDebit += tx.amount;
+            });
+            grandCredit += pCredit; grandDebit += pDebit;
+            let pNet = pCredit - pDebit;
+            let statusText = pNet >= 0 ? `₹${pNet} (જમા)` : `₹${Math.abs(pNet)} (બાકી)`;
+            let statusClass = pNet >= 0 ? 'text-credit' : 'text-debit';
+
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td style="font-weight:bold; color:#2c3e50;">🤝 ${party}</td><td class="text-credit">₹${pCredit}</td><td class="text-debit">₹${pDebit}</td><td class="${statusClass}">${statusText}</td>`;
+            tbody.appendChild(tr);
+        });
+
+        let grandNet = grandCredit - grandDebit;
+        let grandStatusText = grandNet >= 0 ? `₹${grandNet} (કુલ માર્કેટના જમા)` : `₹${Math.abs(grandNet)} (કુલ માર્કેટમાંથી લેવાના)`;
+        let grandStatusClass = grandNet >= 0 ? 'text-credit' : 'text-debit';
+
+        let totalTr = document.createElement('tr');
+        totalTr.className = 'total-row';
+        totalTr.innerHTML = `<td>કુલ ટોટલ (Grand Total)</td><td class="text-credit">₹${grandCredit}</td><td class="text-debit">₹${grandDebit}</td><td class="${grandStatusClass}">${grandStatusText}</td>`;
+        tbody.appendChild(totalTr);
+    }
+
+    function addParty() {
+        let name = document.getElementById('partyNameInput').value.trim();
+        if(!name) { alert('મહેરબાની કરીને પાર્ટીનું નામ લખો!'); return; }
+        if(accountData[name]) { alert('આ નામની પાર્ટી ઓલરેડી બનેલી છે!'); return; }
+        accountData[name] = []; saveToLocalStorage(); updatePartyDropdown();
+        document.getElementById('partyNameInput').value = ''; document.getElementById('partySelect').value = name;
+        loadPartyData(); renderAllPartiesSummary();
+        alert('પાર્ટી સફળતાપૂર્વક ઉમેરાઈ ગઈ.');
+    }
+
+    function updatePartyDropdown() {
+        let select = document.getElementById('partySelect');
+        select.innerHTML = '<option value="">-- પાર્ટી સિલેક્ટ કરો --</option>';
+        Object.keys(accountData).forEach(party => {
+            let option = document.createElement('option'); option.value = party; option.innerText = party; select.appendChild(option);
+        });
+    }
+
+    function loadPartyData() {
+        let party = document.getElementById('partySelect').value;
+        let ledgerSection = document.getElementById('ledgerSection');
+        if(!party) { ledgerSection.style.display = 'none'; return; }
+        ledgerSection.style.display = 'block';
+        document.getElementById('currentPartyTitle').innerText = ` ${party} નો હિસાબ કિતાબ`;
+        renderTable(party);
+    }
+
+    function deleteCurrentParty() {
+        let party = document.getElementById('partySelect').value;
+        if(!party) return;
+        if(confirm(`શું તમે ખરેખર "${party}" ને ડિલીટ કરવા માંગો છો?\nધ્યાન રાખો: આ પાર્ટીનો બધો જ હિસાબ પણ કાયમ માટે ડીલીટ થઈ જશે!`)) {
+            delete accountData[party]; saveToLocalStorage(); updatePartyDropdown();
+            document.getElementById('ledgerSection').style.display = 'none'; renderAllPartiesSummary();
+            alert('પાર્ટી અને તેનો હિસાબ સફળતાપૂર્વક ડીલીટ કરવામાં આવ્યો છે.');
+        }
+    }
+
+    function addTransaction() {
+        let party = document.getElementById('partySelect').value;
+        let date = document.getElementById('txDate').value;
+        let desc = document.getElementById('txDesc').value.trim() || '---';
+        let type = document.getElementById('txType').value;
+        let amount = parseFloat(document.getElementById('txAmount').value);
+
+        if(!party) { alert('કૃપા કરીને પહેલા પાર્ટી પસંદ કરો!'); return; }
+        if(!amount || amount <= 0) { alert('કૃપા કરીને સાચી રકમ લખો!'); return; }
+
+        accountData[party].push({ id: Date.now(), date: date, desc: desc, type: type, amount: amount });
+        saveToLocalStorage(); renderTable(party); renderAllPartiesSummary();
+        document.getElementById('txAmount').value = ''; document.getElementById('txDesc').value = '';
+    }
+
+    function deleteTransaction(id) {
+        if(confirm('શું તમે ખરેખર આ એન્ટ્રી ડીલીટ કરવા માંગો છો?')) {
+            let party = document.getElementById('partySelect').value;
+            accountData[party] = accountData[party].filter(tx => tx.id !== id);
+            saveToLocalStorage(); renderTable(party); renderAllPartiesSummary();
+        }
+    }
+
+    function renderTable(party) {
+        let txList = accountData[party] || [];
+        let tbody = document.getElementById('transactionTableBody'); tbody.innerHTML = '';
+        let totalCredit = 0; let totalDebit = 0;
+
+        txList.forEach(tx => {
+            let tr = document.createElement('tr');
+            let crAmt = tx.type === 'credit' ? `₹${tx.amount}` : '-';
+            let drAmt = tx.type === 'debit' ? `₹${tx.amount}` : '-';
+            if(tx.type === 'credit') totalCredit += tx.amount;
+            if(tx.type === 'debit') totalDebit += tx.amount;
+            tr.innerHTML = `<td>${tx.date}</td><td>${tx.desc}</td><td class="text-credit">${crAmt}</td><td class="text-debit">${drAmt}</td><td><button class="btn-delete" onclick="deleteTransaction(${tx.id})">ડીલીટ</button></td>`;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('totalCredit').innerText = `₹${totalCredit}`;
+        document.getElementById('totalDebit').innerText = `₹${totalDebit}`;
+        let net = totalCredit - totalDebit;
+        let netSpan = document.getElementById('netBalance');
+        netSpan.innerText = net >= 0 ? `₹${net} (જમા)` : `₹${Math.abs(net)} (બાકી)`;
+        netSpan.className = net >= 0 ? 'text-credit' : 'text-debit';
+    }
+
+    function saveToLocalStorage() { localStorage.setItem('partyAccountData', JSON.stringify(accountData)); }
+</script>
+</body>
+</html>
